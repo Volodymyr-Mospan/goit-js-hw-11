@@ -1,17 +1,22 @@
 import SimpleLightbox from 'simplelightbox';
 import 'simplelightbox/dist/simple-lightbox.min.css';
 import PixabayAPI from './js/components/PixabayAPI';
+import LoadMoreButton from './js/components/load-more-button';
 
 const formRef = document.querySelector('#search-form');
 const galleryRef = document.querySelector('.gallery');
-const loadMoreButton = document.querySelector('.load-more');
+// const loadMoreButton = document.querySelector('.load-more');
 
 const pixabayApi = new PixabayAPI();
+const loadMoreButton = new LoadMoreButton({
+  selector: '.load-more',
+  hidden: true,
+});
 
 let lightbox = null;
 
 formRef.addEventListener('submit', onSubmitSearch);
-loadMoreButton.addEventListener('click', onLoadMoreButton);
+loadMoreButton.refs.button.addEventListener('click', fechGallery);
 
 function onSubmitSearch(e) {
   e.preventDefault();
@@ -22,21 +27,8 @@ function onSubmitSearch(e) {
     pixabayApi.resetPage();
   }
 
-  pixabayApi
-    .fetchGallery()
-    .then(markupGallery)
-    .catch(error => {
-      console.log(error);
-    });
-}
-
-function onLoadMoreButton(e) {
-  pixabayApi
-    .fetchGallery()
-    .then(markupGallery)
-    .catch(error => {
-      console.log(error);
-    });
+  loadMoreButton.show();
+  fechGallery();
 }
 
 function markupGallery(arr) {
@@ -70,11 +62,24 @@ function markupGallery(arr) {
     })
     .join('');
 
-  galleryRef.insertAdjacentHTML('beforeend', gallery);
+  return galleryRef.insertAdjacentHTML('beforeend', gallery);
 }
 
 function clearMarkupGallery() {
   galleryRef.innerHTML = '';
+}
+
+function fechGallery() {
+  loadMoreButton.disable();
+  pixabayApi
+    .fetchGallery()
+    .then(arr => {
+      markupGallery(arr);
+      loadMoreButton.enable();
+    })
+    .catch(error => {
+      console.log(error);
+    });
 }
 
 // function onLoadMoreButton(e) {

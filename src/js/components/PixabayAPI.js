@@ -11,7 +11,7 @@ export default class fetchPixabayAPI {
   }
 
   fetchGallery() {
-    const url = `${BASE_URL}?key=${API_KEY}&image_type=${imageType}&orientation=${orientation}&safesearch=${safesearch}&q=${this.searchQuery}&per_page=4&page=${this.page}`;
+    const url = `${BASE_URL}?key=${API_KEY}&image_type=${imageType}&orientation=${orientation}&safesearch=${safesearch}&q=${this.searchQuery}&per_page=40&page=${this.page}`;
     return fetch(url)
       .then(resp => {
         if (!resp.ok) {
