@@ -1,6 +1,6 @@
 import SimpleLightbox from 'simplelightbox';
 import 'simplelightbox/dist/simple-lightbox.min.css';
-import PixabayAPI from './js/components/pixabayAPI';
+import PixabayAPI from './js/components/PixabayAPI';
 
 const formRef = document.querySelector('#search-form');
 const galleryRef = document.querySelector('.gallery');
