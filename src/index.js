@@ -6,6 +6,7 @@ import Notiflix from 'notiflix';
 
 const formRef = document.querySelector('#search-form');
 const galleryRef = document.querySelector('.gallery');
+const quantity = document.querySelector('.js-quantity');
 const guard = document.querySelector('.js-guard');
 
 const pixabayApi = new PixabayAPI();
@@ -21,6 +22,7 @@ const observerOptions = {
 const observer = new IntersectionObserver(onInfinityLoad, observerOptions);
 
 let lightbox = null;
+let isSelectAll = false;
 
 formRef.addEventListener('submit', onSubmitSearch);
 loadMoreButton.refs.button.addEventListener('click', onLoadMoreButton);
@@ -31,14 +33,14 @@ async function onSubmitSearch(e) {
 
   if (
     pixabayApi.query !== e.currentTarget.searchQuery.value ||
-    pixabayApi.quantityIndex !== e.currentTarget.quantity.selectedIndex
+    pixabayApi.quantityIndex !== quantity.selectedIndex
   ) {
     clearMarkupGallery();
     pixabayApi.query = e.currentTarget.searchQuery.value;
     pixabayApi.perPage = e.currentTarget.quantity.value;
     pixabayApi.quantityIndex = e.currentTarget.quantity.selectedIndex;
-
-    const isSelectAll = Boolean(!e.currentTarget.quantity.selectedIndex);
+    isSelectAll =
+      quantity.options[quantity.selectedIndex].textContent === 'All';
 
     pixabayApi.resetPage();
 
@@ -49,7 +51,7 @@ async function onSubmitSearch(e) {
       if (isSelectAll) {
         observer.observe(guard);
       } else {
-        showLoadMoreButton();
+        // showLoadMoreButton();
         observer.disconnect();
       }
     } catch (error) {
@@ -60,13 +62,15 @@ async function onSubmitSearch(e) {
 
   try {
     await fechGallery();
-    showLoadMoreButton();
+    // showLoadMoreButton();
   } catch (error) {
     Notiflix.Notify.failure(error.message);
   }
 }
 
 async function onLoadMoreButton() {
+  loadMoreButton.disable();
+
   try {
     await fechGallery();
 
@@ -78,6 +82,8 @@ async function onLoadMoreButton() {
       top: cardHeight * 2,
       behavior: 'smooth',
     });
+
+    loadMoreButton.enable();
 
     showLoadMoreButton();
   } catch (error) {
@@ -113,6 +119,8 @@ async function fechGallery() {
   } else {
     lightbox = new SimpleLightbox('.gallery a');
   }
+
+  showLoadMoreButton();
 
   return data;
 }
@@ -152,7 +160,7 @@ function markupGallery(arr) {
 }
 
 function showLoadMoreButton() {
-  if (pixabayApi.page <= pixabayApi.totalPage) {
+  if (pixabayApi.page <= pixabayApi.totalPage && !isSelectAll) {
     loadMoreButton.show();
   }
 }
