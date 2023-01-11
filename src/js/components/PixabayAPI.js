@@ -10,7 +10,7 @@ export default class fetchPixabayAPI {
     this.page = 1;
     this.perPage = 40;
     this.totalPage = 1;
-    this.totalHits = 1;
+    this.quantityIndex = 3;
   }
 
   fetchGallery() {
@@ -24,16 +24,14 @@ export default class fetchPixabayAPI {
         return resp.json();
       })
       .then(data => {
-        if (!data.total) {
+        if (!data.totalHits) {
           throw new Error(
             'Sorry, there are no images matching your search query. Please try again.'
           );
         }
-        this.total = data.total;
-        this.totalHits = data.totalHits;
         this.totalPage = Math.ceil(data.totalHits / this.perPage);
         this.page += 1;
-        return data.hits;
+        return data;
       });
   }
 

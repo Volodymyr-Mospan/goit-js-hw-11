@@ -29,6 +29,17 @@
   cursor: pointer;
 }
 
+.quantityOfImages {
+  height: 25px;
+  margin-left: 15px;
+
+  border: 2px solid rgb(59, 168, 201);
+  border-radius: 15px;
+  box-shadow: 1px 1px 5px 0px rgb(59, 168, 201);
+
+  text-align: center;
+}
+
 main {
   padding: 50px;
 }

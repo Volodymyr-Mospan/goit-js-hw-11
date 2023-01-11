@@ -6,6 +6,7 @@ import Notiflix from 'notiflix';
 
 const formRef = document.querySelector('#search-form');
 const galleryRef = document.querySelector('.gallery');
+const guard = document.querySelector('.js-guard');
 
 const pixabayApi = new PixabayAPI();
 const loadMoreButton = new LoadMoreButton({
@@ -21,33 +22,91 @@ loadMoreButton.refs.button.addEventListener('click', onLoadMoreButton);
 function onSubmitSearch(e) {
   e.preventDefault();
 
-  if (pixabayApi.query !== e.currentTarget.searchQuery.value) {
+  if (
+    pixabayApi.query !== e.currentTarget.searchQuery.value ||
+    pixabayApi.quantityIndex !== e.currentTarget.quantity.selectedIndex
+  ) {
     clearMarkupGallery();
     pixabayApi.query = e.currentTarget.searchQuery.value;
+    pixabayApi.perPage = e.currentTarget.quantity.value;
+    pixabayApi.quantityIndex = e.currentTarget.quantity.selectedIndex;
+
+    const isSelectAll = Boolean(!e.currentTarget.quantity.selectedIndex);
+
     pixabayApi.resetPage();
 
     return fechGallery()
-      .then(totalHits =>
-        Notiflix.Notify.success(`Hooray! We found ${totalHits} images.`)
-      )
-      .catch(error => {
-        Notiflix.Notify.failure(error.message);
-      });
+      .then(data => {
+        Notiflix.Notify.success(`Hooray! We found ${data.totalHits} images.`);
+        return data;
+      })
+      .then(() => {
+        if (isSelectAll) {
+          loadMoreButton.hide();
+
+          const observer = new IntersectionObserver(onInfinityLoad, {
+            root: null,
+            rootMargin: '600px',
+            threshold: 1.0,
+          });
+          observer.observe(guard);
+        } else {
+          showLoadMoreButton();
+        }
+      })
+      .catch(error => Notiflix.Notify.failure(error.message));
   }
 
-  fechGallery();
+  fechGallery()
+    .then(showLoadMoreButton)
+    .catch(error => Notiflix.Notify.failure(error.message));
 }
 
 function onLoadMoreButton() {
-  fechGallery().then(() => {
-    const { height: cardHeight } = document
-      .querySelector('.gallery')
-      .firstElementChild.getBoundingClientRect();
+  fechGallery()
+    .then(() => {
+      const { height: cardHeight } = document
+        .querySelector('.gallery')
+        .firstElementChild.getBoundingClientRect();
 
-    window.scrollBy({
-      top: cardHeight * 2,
-      behavior: 'smooth',
-    });
+      window.scrollBy({
+        top: cardHeight * 2,
+        behavior: 'smooth',
+      });
+      return;
+    })
+    .then(showLoadMoreButton);
+}
+
+function onInfinityLoad(entries, observer) {
+  entries.forEach(entry => {
+    if (entry.isIntersecting) fechGallery();
+  });
+}
+
+function clearMarkupGallery() {
+  loadMoreButton.hide();
+  galleryRef.innerHTML = '';
+}
+
+function fechGallery() {
+  if (pixabayApi.page > pixabayApi.totalPage) {
+    return Notiflix.Notify.info(
+      "We're sorry, but you've reached the end of search results."
+    );
+  }
+
+  return pixabayApi.fetchGallery().then(data => {
+    loadMoreButton.hide();
+    markupGallery(data.hits);
+
+    if (lightbox) {
+      lightbox.refresh();
+    } else {
+      lightbox = new SimpleLightbox('.gallery a');
+    }
+
+    return data;
   });
 }
 
@@ -85,32 +144,8 @@ function markupGallery(arr) {
   return galleryRef.insertAdjacentHTML('beforeend', gallery);
 }
 
-function clearMarkupGallery() {
-  loadMoreButton.hide();
-  galleryRef.innerHTML = '';
-}
-
-function fechGallery() {
-  if (pixabayApi.page > pixabayApi.totalPage) {
-    return Notiflix.Notify.info(
-      "We're sorry, but you've reached the end of search results."
-    );
+function showLoadMoreButton() {
+  if (pixabayApi.page <= pixabayApi.totalPage) {
+    loadMoreButton.show();
   }
-
-  return pixabayApi.fetchGallery().then(arr => {
-    loadMoreButton.hide();
-    markupGallery(arr);
-
-    if (lightbox) {
-      lightbox.refresh();
-    } else {
-      lightbox = new SimpleLightbox('.gallery a');
-    }
-
-    if (pixabayApi.page <= pixabayApi.totalPage) {
-      loadMoreButton.show();
-    }
-
-    return pixabayApi.totalHits;
-  });
 }
