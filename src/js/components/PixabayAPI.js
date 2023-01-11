@@ -15,22 +15,18 @@ export default class fetchPixabayAPI {
     this.quantityIndex = 3;
   }
 
-  fetchGallery() {
+  async fetchGallery() {
     const url = `${BASE_URL}?key=${API_KEY}&image_type=${imageType}&orientation=${orientation}&safesearch=${safesearch}&q=${this.searchQuery}&per_page=${this.perPage}&page=${this.page}`;
-
-    return axios
-      .get(url)
-      .then(resp => resp.data)
-      .then(data => {
-        if (!data.totalHits) {
-          throw new Error(
-            'Sorry, there are no images matching your search query. Please try again.'
-          );
-        }
-        this.totalPage = Math.ceil(data.totalHits / this.perPage);
-        this.page += 1;
-        return data;
-      });
+    const resp = await axios.get(url);
+    const data = await resp.data;
+    if (!data.totalHits) {
+      throw new Error(
+        'Sorry, there are no images matching your search query. Please try again.'
+      );
+    }
+    this.totalPage = Math.ceil(data.totalHits / this.perPage);
+    this.page += 1;
+    return data;
   }
 
   resetPage() {

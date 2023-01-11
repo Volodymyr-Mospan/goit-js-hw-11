@@ -15,7 +15,7 @@ const loadMoreButton = new LoadMoreButton({
 });
 const observerOptions = {
   root: null,
-  rootMargin: '600px',
+  rootMargin: '800px',
   threshold: 1.0,
 };
 const observer = new IntersectionObserver(onInfinityLoad, observerOptions);
@@ -25,8 +25,9 @@ let lightbox = null;
 formRef.addEventListener('submit', onSubmitSearch);
 loadMoreButton.refs.button.addEventListener('click', onLoadMoreButton);
 
-function onSubmitSearch(e) {
+async function onSubmitSearch(e) {
   e.preventDefault();
+  loadMoreButton.hide();
 
   if (
     pixabayApi.query !== e.currentTarget.searchQuery.value ||
@@ -41,41 +42,47 @@ function onSubmitSearch(e) {
 
     pixabayApi.resetPage();
 
-    return fechGallery()
-      .then(data => {
-        Notiflix.Notify.success(`Hooray! We found ${data.totalHits} images.`);
-        return data;
-      })
-      .then(() => {
-        if (isSelectAll) {
-          observer.observe(guard);
-        } else {
-          showLoadMoreButton();
-          observer.disconnect();
-        }
-      })
-      .catch(error => Notiflix.Notify.failure(error.message));
+    try {
+      const data = await fechGallery();
+      Notiflix.Notify.success(`Hooray! We found ${data.totalHits} images.`);
+
+      if (isSelectAll) {
+        observer.observe(guard);
+      } else {
+        showLoadMoreButton();
+        observer.disconnect();
+      }
+    } catch (error) {
+      Notiflix.Notify.failure(error.message);
+    }
+    return;
   }
 
-  fechGallery()
-    .then(showLoadMoreButton)
-    .catch(error => Notiflix.Notify.failure(error.message));
+  try {
+    await fechGallery();
+    showLoadMoreButton();
+  } catch (error) {
+    Notiflix.Notify.failure(error.message);
+  }
 }
 
-function onLoadMoreButton() {
-  fechGallery()
-    .then(() => {
-      const { height: cardHeight } = document
-        .querySelector('.gallery')
-        .firstElementChild.getBoundingClientRect();
+async function onLoadMoreButton() {
+  try {
+    await fechGallery();
 
-      window.scrollBy({
-        top: cardHeight * 2,
-        behavior: 'smooth',
-      });
-      return;
-    })
-    .then(showLoadMoreButton);
+    const { height: cardHeight } = await document
+      .querySelector('.gallery')
+      .firstElementChild.getBoundingClientRect();
+
+    window.scrollBy({
+      top: cardHeight * 2,
+      behavior: 'smooth',
+    });
+
+    showLoadMoreButton();
+  } catch (error) {
+    Notiflix.Notify.failure(error.message);
+  }
 }
 
 function onInfinityLoad(entries, observer) {
@@ -89,25 +96,25 @@ function clearMarkupGallery() {
   galleryRef.innerHTML = '';
 }
 
-function fechGallery() {
+async function fechGallery() {
   if (pixabayApi.page > pixabayApi.totalPage) {
     return Notiflix.Notify.info(
       "We're sorry, but you've reached the end of search results."
     );
   }
 
-  return pixabayApi.fetchGallery().then(data => {
-    loadMoreButton.hide();
-    markupGallery(data.hits);
+  const data = await pixabayApi.fetchGallery();
+  loadMoreButton.hide();
 
-    if (lightbox) {
-      lightbox.refresh();
-    } else {
-      lightbox = new SimpleLightbox('.gallery a');
-    }
+  markupGallery(data.hits);
 
-    return data;
-  });
+  if (lightbox) {
+    lightbox.refresh();
+  } else {
+    lightbox = new SimpleLightbox('.gallery a');
+  }
+
+  return data;
 }
 
 function markupGallery(arr) {

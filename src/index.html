@@ -7,8 +7,35 @@
     <link rel="stylesheet" href="./sass/index.scss" />
   </head>
   <body>
-    <!-- ❗️❗️❗️ Add partials like so for every page -->
-    <include src="./partials/header.html"></include>
+    <header class="header">
+      <form class="search-form" id="search-form">
+        <input
+          class="inputSearch"
+          type="text"
+          name="searchQuery"
+          autocomplete="off"
+          placeholder="Search images..."
+        />
+        <button type="submit">Search</button>
+        <select class="quantityOfImages" id="quantity" name="quantity">
+          <option value="40" name="infiity">All</option>
+          <option value="10">10</option>
+          <option value="20">20</option>
+          <option value="40" selected>40</option>
+          <option value="100">100</option>
+        </select>
+      </form>
+    </header>
+
+    <main>
+      <div class="gallery">
+        <!-- Картки зображень -->
+      </div>
+      <div class="js-guard"></div>
+      <button type="button" class="load-more">
+        <span class="label">Load more</span>
+      </button>
+    </main>
     <script type="module" src="./index.js"></script>
   </body>
 </html>
