@@ -51,7 +51,6 @@ async function onSubmitSearch(e) {
       if (isSelectAll) {
         observer.observe(guard);
       } else {
-        // showLoadMoreButton();
         observer.disconnect();
       }
     } catch (error) {
@@ -62,7 +61,6 @@ async function onSubmitSearch(e) {
 
   try {
     await fechGallery();
-    // showLoadMoreButton();
   } catch (error) {
     Notiflix.Notify.failure(error.message);
   }
