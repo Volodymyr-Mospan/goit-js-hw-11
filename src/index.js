@@ -13,6 +13,12 @@ const loadMoreButton = new LoadMoreButton({
   selector: '.load-more',
   hidden: true,
 });
+const observerOptions = {
+  root: null,
+  rootMargin: '600px',
+  threshold: 1.0,
+};
+const observer = new IntersectionObserver(onInfinityLoad, observerOptions);
 
 let lightbox = null;
 
@@ -42,16 +48,10 @@ function onSubmitSearch(e) {
       })
       .then(() => {
         if (isSelectAll) {
-          loadMoreButton.hide();
-
-          const observer = new IntersectionObserver(onInfinityLoad, {
-            root: null,
-            rootMargin: '600px',
-            threshold: 1.0,
-          });
           observer.observe(guard);
         } else {
           showLoadMoreButton();
+          observer.disconnect();
         }
       })
       .catch(error => Notiflix.Notify.failure(error.message));

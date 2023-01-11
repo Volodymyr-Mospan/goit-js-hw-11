@@ -1,3 +1,5 @@
+import axios from 'axios';
+
 const API_KEY = '32702004-1edcc94db1ad9191accf2fa0a';
 const imageType = 'photo';
 const orientation = 'horizontal';
@@ -16,13 +18,9 @@ export default class fetchPixabayAPI {
   fetchGallery() {
     const url = `${BASE_URL}?key=${API_KEY}&image_type=${imageType}&orientation=${orientation}&safesearch=${safesearch}&q=${this.searchQuery}&per_page=${this.perPage}&page=${this.page}`;
 
-    return fetch(url)
-      .then(resp => {
-        if (!resp.ok) {
-          throw new Error(resp.status);
-        }
-        return resp.json();
-      })
+    return axios
+      .get(url)
+      .then(resp => resp.data)
       .then(data => {
         if (!data.totalHits) {
           throw new Error(
